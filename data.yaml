@@ -1,0 +1,5 @@
+model:   {dim: 96, k: 64, out_dim: 128, stride: 16, pretrained: true}
+train:   {epochs: 15, lr: 1.0e-4, margin: 0.1, groups: 4, gimgs: 4, cell: 4.0, p_blur: 0.4}
+blur:    {epsilon: 120.0, eps_high: 138.0, gate_size: [120, 160]}
+matcher: {tau: 0.75, delta: 0.05, r: 5, m: 3, keyframe_interval: 5}
+eval:    {loop_index_gap: 100}

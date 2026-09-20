@@ -1,0 +1,19 @@
+{
+  "recall_all": {
+    "R@1": 0.9040333796940194,
+    "R@5": 0.9235048678720446,
+    "R@10": 0.9360222531293463
+  },
+  "n_frames": 2761,
+  "n_blur_frames": 3,
+  "n_loopable_queries": 719,
+  "n_accepted_loops": 0,
+  "accepted_loops": [],
+  "lcd_precision": NaN,
+  "lcd_recall": 0.0,
+  "recall_sharp_pos": {
+    "R@1": 0.9040333796940194,
+    "R@5": 0.9235048678720446,
+    "R@10": 0.9360222531293463
+  }
+}
