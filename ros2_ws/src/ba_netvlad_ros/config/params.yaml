@@ -1,0 +1,52 @@
+ba_netvlad_lcd_node:
+  ros__parameters:
+    # -- topics ---------------------------------------------------------------
+    image_topic: /oakd/rgb/preview/image_raw   # TurtleBot4 Standard (OAK-D Lite);
+                                                # confirm with `ros2 topic list`, this
+                                                # varies by driver config/version.
+    odom_topic: /odom
+
+    # -- model / dictionary -----------------------------------------------------
+    model_path: /home/ubuntu/ba_netvlad/ckpt/ba_kitti00.pt   # CHANGE ME: retrain/fine-tune
+                                                               # on YOUR environment first --
+                                                               # a KITTI-only checkpoint will
+                                                               # not transfer (see main.tex,
+                                                               # GPW/City Centre zero-shot results).
+    dict_path: ""              # '' = start empty (first mapping run);
+                                # or point at a Super Dictionary built by
+                                # scripts/03_build_dictionary.py for a warm start.
+    dict_autosave_path: /home/ubuntu/ba_netvlad/live_dict.npz
+    dict_autosave_every_n_keyframes: 20
+    device: cpu                # 'cuda' if the compute host has a GPU
+    stride: 16
+
+    # -- Step 1: blur gate ------------------------------------------------------
+    # REQUIRED: run scripts/01_calibrate_blur_gate.py on frames from THIS
+    # camera before setting this. 0.0 (the default) makes every frame report
+    # as blurry.
+    epsilon: 0.0
+    epsilon_hysteresis_ratio: 1.15
+
+    # -- Step 4: matcher / temporal voting ---------------------------------------
+    # Starting points only -- re-tune from a PR curve on a recorded run of
+    # this robot/environment (scripts/04_replay_evaluate.py + a small sweep,
+    # same as was done for KITTI/GPW/City Centre in main.tex).
+    tau: 0.5
+    delta: 0.05
+    topk: 5
+    voter_r: 5
+    voter_m: 3
+    margin_window_m: 3.0        # exclude dictionary entries within this many
+                                 # meters of the top-1 match's stored pose when
+                                 # computing the second-best score (distinctness
+                                 # test) -- NOT a loop-closure exclusion.
+
+    # Live-robot replacement for the offline `loop_index_gap`: excludes
+    # entries from the last `min_loop_time_s` seconds of travel (recent
+    # history), never spatially-nearby entries -- a real loop closure IS
+    # spatially near the query by definition.
+    min_loop_time_s: 30.0
+
+    # -- mapping phase ------------------------------------------------------------
+    mapping_mode: true           # false = pure localization against a frozen dictionary
+    keyframe_min_distance_m: 1.0 # add a new dictionary entry only after moving this far

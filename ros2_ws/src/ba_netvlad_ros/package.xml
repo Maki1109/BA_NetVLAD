@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ba_netvlad_ros</name>
+  <version>0.1.0</version>
+  <description>
+    Live BA-NetVLAD loop-closure detection node for TurtleBot4: wraps the
+    ba_netvlad Python library (blur gate + NetVLAD + Super Dictionary +
+    temporal voting) into a ROS 2 node that consumes a camera topic and
+    /odom, and publishes accepted loop-closure hypotheses as a
+    PoseWithCovarianceStamped plus diagnostics. Not a full SLAM backend --
+    intended to sit alongside RTAB-Map / slam_toolbox / Cartographer, see
+    README.md for the integration gap each of those has.
+  </description>
+  <maintainer email="23020762@vnu.edu.vn">Luong Nguyen Viet Sang</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <!-- torch has no rosdep key on most platforms: install it into the same
+       Python environment ROS 2 uses (see README "Install" section) rather
+       than relying on rosdep to pull it in. -->
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
