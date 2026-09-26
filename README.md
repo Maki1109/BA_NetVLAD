@@ -24,11 +24,6 @@ depend on. This breaks the local-feature matching that most loop-closure detecti
    *sharp* keyframes only. A blurry query frame is matched directly against it, with
    temporal voting ($m$-of-$r$ agreement) before a loop closure is confirmed.
 
-See `main.tex` for the full write-up: method derivation, every bug found while
-reproducing the reference implementation, the training run, and results across
-KITTI 00/05/06, a synthetic motion-blur benchmark, and Gardens Point Walking / City
-Centre.
-
 ## Repository layout
 
 ```
