@@ -1,0 +1,22 @@
+{
+  "method": "ba_netvlad_ba_kitti00",
+  "dataset": "kitti06",
+  "blur_px": 30.0,
+  "dim": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "n_ref": 695,
+  "n_query": 1101,
+  "n_loopable_queries": 253,
+  "recall": {
+    "R@1": 0.9802371541501976,
+    "R@5": 0.9881422924901185,
+    "R@10": 0.9960474308300395
+  },
+  "AP": 0.9736335123686073,
+  "max_recall_at_100_precision": 0.7984189723320159,
+  "sec_per_image_model_only": 0.005640948500880104,
+  "device": "cpu"
+}

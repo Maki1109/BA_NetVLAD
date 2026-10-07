@@ -1,0 +1,22 @@
+{
+  "method": "salad",
+  "dataset": "gpw_night",
+  "blur_px": 0.0,
+  "dim": 8448,
+  "image_size": [
+    322,
+    322
+  ],
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.305,
+    "R@5": 0.865,
+    "R@10": 0.965
+  },
+  "AP": 0.1126454354518031,
+  "max_recall_at_100_precision": 0.01,
+  "sec_per_image_model_only": 0.4365507030487061,
+  "device": "cpu"
+}

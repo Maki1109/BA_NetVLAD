@@ -1,0 +1,150 @@
+"""Collect results/baselines/*.json into comparison tables.
+
+Writes results/baselines/comparison.md (Markdown) and paper/tables_comparison.tex (LaTeX).
+Missing runs are shown as '...' so the script can be re-run while evaluations are going.
+Usage: python scripts/12_make_tables.py
+"""
+import json, os
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RES = os.path.join(ROOT, 'results/baselines')
+BLURS = (0, 20, 30)
+DATASETS = [('kitti05', 'KITTI05'), ('kitti06', 'KITTI06'),
+            ('gpw_day', 'GPW day→day'), ('gpw_night', 'GPW day→night')]
+# (file tag, display name, datasets it applies to)
+METHODS = [
+    ('ba_netvlad_ba_kitti00', 'BA-NetVLAD (ours, KITTI00 model)', None),
+    ('ba_netvlad_ba_gpw_finetuned2', 'BA-NetVLAD (ours, GPW fine-tuned)†', ('gpw_day', 'gpw_night')),
+    ('netvlad_4096', 'NetVLAD (VGG16, Pitts30K)', None),
+    ('mixvpr_4096', 'MixVPR', None),
+    ('mixvpr_128', 'MixVPR (128-D)', None),
+    ('salad', 'SALAD', None),
+]
+
+
+def load(tag, ds, b):
+    p = f'{RES}/{tag}_{ds}_blur{b}.json'
+    return json.load(open(p)) if os.path.exists(p) else None
+
+
+def rows_for(ds):
+    return [(t, n) for t, n, only in METHODS if only is None or ds in only]
+
+
+def best(ds, key):
+    """Best value per blur level over the methods that have a result (for bolding)."""
+    out = {}
+    for b in BLURS:
+        # rows fine-tuned on the test places (†) are not comparable, so never bolded
+        vals = [key(r) for t, n in rows_for(ds) if '†' not in n and (r := load(t, ds, b))]
+        out[b] = max(vals) if vals else None
+    return out
+
+
+def fmt(v, best_v, md, pct=True, bold_ok=True):
+    if v is None:
+        return '...'
+    s = f'{100 * v:.1f}' if pct else f'{v:.3f}'
+    if bold_ok and best_v is not None and abs(v - best_v) < 1e-9:
+        return f'**{s}**' if md else f'\\textbf{{{s}}}'
+    return s
+
+
+def recall_table(ds, md):
+    k1 = lambda r: r['recall']['R@1']; k5 = lambda r: r['recall']['R@5']
+    b1, b5 = best(ds, k1), best(ds, k5)
+    lines = []
+    for tag, name in rows_for(ds):
+        cells, dim = [], '...'
+        for b in BLURS:
+            r = load(tag, ds, b)
+            if r: dim = str(r['dim'])
+            ok = '†' not in name
+            cells.append(f"{fmt(r and k1(r), b1[b], md, bold_ok=ok)} / {fmt(r and k5(r), b5[b], md, bold_ok=ok)}")
+        r0, r30 = load(tag, ds, 0), load(tag, ds, 30)
+        # a ratio of two near-chance recalls means nothing
+        kept = ('...' if not (r0 and r30) else '–' if k5(r0) < 0.3
+                else f"{100 * k5(r30) / k5(r0):.0f}%")
+        lines.append([name, dim] + cells + [kept])
+    return lines
+
+
+def ap_table(ds, md):
+    ka = lambda r: r['AP']
+    ba = best(ds, ka)
+    return [[name] + [fmt((r := load(tag, ds, b)) and ka(r), ba[b], md, pct=False, bold_ok='†' not in name)
+                      for b in BLURS]
+            for tag, name in rows_for(ds)]
+
+
+def speed_rows():
+    out = []
+    for tag, name, _ in METHODS:
+        runs = [load(tag, ds, b) for ds, _ in DATASETS for b in BLURS]
+        # cached descriptors store NaN time; take the first run that actually timed the model
+        r = next((x for x in runs if x and x['sec_per_image_model_only'] == x['sec_per_image_model_only']), None)
+        if r is None:
+            out.append([name, '...', '...', '...', '...']); continue
+        kb = r['dim'] * 4 / 1024
+        out.append([name, str(r['dim']), f"{r['dim'] * 4 / 1024:.1f}",
+                    f"{kb * 1000 / 1024:.1f}", f"{1000 * r['sec_per_image_model_only']:.0f}"])
+    return out
+
+
+def md_table(header, rows):
+    s = '| ' + ' | '.join(header) + ' |\n|' + '---|' * len(header) + '\n'
+    return s + ''.join('| ' + ' | '.join(r) + ' |\n' for r in rows)
+
+
+def tex_table(header, rows, caption, label, spec):
+    esc = lambda x: x.replace('%', '\\%').replace('→', '$\\to$').replace('†', '$^\\dagger$')
+    s = (f'\\begin{{table*}}[t]\\centering\\small\n\\caption{{{caption}}}\\label{{{label}}}\n'
+         f'\\begin{{tabular}}{{{spec}}}\\toprule\n' + ' & '.join(map(esc, header)) + '\\\\\\midrule\n')
+    for r in rows:
+        s += (' & '.join(map(esc, r)) + '\\\\\n') if r else '\\midrule\n'
+    return s + '\\bottomrule\\end{tabular}\n\\end{table*}\n'
+
+
+if __name__ == '__main__':
+    md = ['# BA-NetVLAD vs. NetVLAD, MixVPR, SALAD\n',
+          'Same protocol for every method (scripts/11_baseline_eval.py). Blur = linear motion '
+          'kernel on the queries only, references sharp. KITTI: positive within 4 m, ±400-frame '
+          'exclusion; GPW: ref = day_left, identity ground truth. Bold = best in column among the comparable (not fine-tuned on test) methods. '
+          '† fine-tuned on the 200 GPW test places (not comparable with the zero-shot rows). '
+          '"Kept" = R@5 at 30 px / R@5 sharp ("–" when sharp R@5 < 30%). "..." = not run yet. '
+          'CPU timings are indicative only: some runs shared the CPU with another job.\n']
+    tex = ['% Generated by scripts/12_make_tables.py -- do not edit by hand.\n']
+    H = ['Method', 'Dim', 'Sharp R@1 / R@5', 'Blur 20 px R@1 / R@5', 'Blur 30 px R@1 / R@5', 'Kept']
+    for ds, name in DATASETS:
+        md.append(f'\n## Table: Recall@N (%), {name}\n\n' + md_table(H, recall_table(ds, True)))
+    md.append('\n## Table: Average precision (top-1 score threshold sweep, all queries)\n')
+    HA = ['Method', 'Sharp', 'Blur 20 px', 'Blur 30 px']
+    for ds, name in DATASETS:
+        md.append(f'\n**{name}**\n\n' + md_table(HA, ap_table(ds, True)))
+    md.append('\n## Table: Cost\n\n' + md_table(
+        ['Method', 'Dim', 'KB / image (float32)', 'MB / 1000 images', 'ms / image (CPU, model only)'],
+        speed_rows()))
+    open(f'{RES}/comparison.md', 'w').write(''.join(md))
+
+    # LaTeX: one combined recall table, one AP table, one cost table
+    rows = []
+    for ds, name in DATASETS:
+        rows.append([f'\\multicolumn{{6}}{{l}}{{\\emph{{{name}}}}}'])
+        rows += recall_table(ds, False)
+        rows.append(None)
+    rows = rows[:-1]
+    tex.append(tex_table(H, rows, 'Recall@1 / Recall@5 (\\%) under synthetic motion blur on the queries. '
+                         'Best per column in bold. $^\\dagger$Fine-tuned on the GPW test places. '
+                         'Kept: R@5 at 30\\,px over R@5 sharp.', 'tab:cmp_all', 'lrcccc'))
+    rows = []
+    for ds, name in DATASETS:
+        rows.append([f'\\multicolumn{{4}}{{l}}{{\\emph{{{name}}}}}'])
+        rows += ap_table(ds, False)
+        rows.append(None)
+    tex.append(tex_table(HA, rows[:-1], 'Average precision of top-1 retrieval (threshold sweep over all queries).',
+                         'tab:ap_all', 'lccc'))
+    tex.append(tex_table(['Method', 'Dim', 'KB / image', 'MB / 1000 images', 'ms / image'], speed_rows(),
+                         'Descriptor size and CPU encoding time (model forward only, batch 8).',
+                         'tab:cost', 'lrrrr'))
+    open(os.path.join(ROOT, 'paper/tables_comparison.tex'), 'w').write('\n'.join(tex))
+    print(''.join(md))

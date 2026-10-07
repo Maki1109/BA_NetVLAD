@@ -29,6 +29,12 @@ ap.add_argument('--margin_window', type=int, default=25,
 ap.add_argument('--vote_cell', type=float, default=None,
                 help='metres per voting node; must exceed keyframe_interval * '
                      'inter-frame distance or m-of-r agreement is unreachable')
+ap.add_argument('--mode', choices=['ba', 'netvlad', 'orb'], default='ba',
+                help="ba: ORB verification on sharp frames only, NetVLAD-only on blurry; "
+                     "netvlad: no ORB (ablation); orb: ORB verification on every frame (baseline)")
+ap.add_argument('--orb_min_inliers', type=int, default=15,
+                help='RANSAC inliers needed to verify a candidate')
+ap.add_argument('--orb_topk', type=int, default=5, help='candidates verified per query')
 ap.add_argument('--no_pretrained', action='store_true')
 ap.add_argument('--out', default='results/replay.json')
 args = ap.parse_args()
@@ -41,9 +47,11 @@ res = run_replay(model, d, args.query_root, epsilon=args.epsilon,
                  keyframe_interval=args.keyframe_interval,
                  loop_index_gap=args.loop_index_gap, cell_size=args.cell,
                  margin_window=args.margin_window, vote_cell=args.vote_cell,
-                 project=d.get('pca'), device=dev)
+                 project=d.get('pca'), device=dev,
+                 mode=args.mode, orb_min_inliers=args.orb_min_inliers,
+                 orb_topk=args.orb_topk)
 res['accepted_loops'] = res['accepted_loops'][:50]
 os.makedirs(os.path.dirname(args.out), exist_ok=True)
 json.dump(res, open(args.out, 'w'), indent=2)
-print(json.dumps({k: v for k, v in res.items() if k != 'accepted_loops'}, indent=2))
+print(json.dumps({k: v for k, v in res.items() if k not in ('accepted_loops', 'orb_stats')}, indent=2))
 print(f"(first accepted loops: {res['accepted_loops'][:3]})")

@@ -1,0 +1,22 @@
+{
+  "method": "ba_netvlad_ba_gpw_finetuned2",
+  "dataset": "gpw_day",
+  "blur_px": 20.0,
+  "dim": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.43,
+    "R@5": 0.975,
+    "R@10": 1.0
+  },
+  "AP": 0.17700916409678175,
+  "max_recall_at_100_precision": 0.005,
+  "sec_per_image_model_only": 0.003726522922515869,
+  "device": "cpu"
+}

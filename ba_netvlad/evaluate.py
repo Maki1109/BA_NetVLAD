@@ -15,14 +15,37 @@ def recall_at_n(scores, gt_pos, ns=(1, 5, 10)):
     return out
 
 def precision_recall_curve(scores, gt_pos, steps=100):
-    """Sweep top-1 similarity threshold -> PR curve for LCD."""
-    s1 = scores.max(axis=1)
-    y = gt_pos.any(axis=1)
+    """Sweep top-1 similarity threshold -> PR curve for LCD.
+
+    A query is a true positive only if it is accepted AND its top-1 match is a
+    ground-truth positive. The previous version scored "does this query have any
+    positive in the reference set" instead, so every accepted query with a
+    positive existing counted as correct regardless of what was retrieved and
+    the curve was flat at precision 1.0.
+    """
+    top1 = scores.argmax(axis=1)
+    s1 = scores[np.arange(len(scores)), top1]
+    has_gt = gt_pos.any(axis=1)                       # query is loop-capable
+    correct = gt_pos[np.arange(len(gt_pos)), top1]    # retrieved the right place
+    n_pos = max(int(has_gt.sum()), 1)
     ths = np.linspace(s1.min(), s1.max(), steps)
     P, R, T = [], [], []
     for t in ths:
         pred = s1 >= t
-        tp = (pred & y).sum(); fp = (pred & ~y).sum(); fn = ((~pred) & y).sum()
-        if tp + fp == 0: continue
-        P.append(tp / (tp + fp)); R.append(tp / (tp + fn + 1e-9)); T.append(t)
+        tp = int((pred & correct).sum())
+        n_pred = int(pred.sum())
+        if n_pred == 0: continue
+        P.append(tp / n_pred); R.append(tp / n_pos); T.append(t)
     return np.array(P), np.array(R), np.array(T)
+
+def average_precision(scores, gt_pos, steps=200):
+    """AP = area under the PR curve (the metric used by most LCD papers)."""
+    P, R, _ = precision_recall_curve(scores, gt_pos, steps)
+    if len(R) == 0: return 0.0
+    o = np.argsort(R)
+    return float(np.trapz(P[o], R[o]))
+
+def max_recall_at_full_precision(scores, gt_pos, steps=200):
+    P, R, _ = precision_recall_curve(scores, gt_pos, steps)
+    ok = P >= 1.0 - 1e-9
+    return float(R[ok].max()) if ok.any() else 0.0

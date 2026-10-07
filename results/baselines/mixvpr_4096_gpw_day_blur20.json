@@ -1,0 +1,19 @@
+{
+  "method": "mixvpr_4096",
+  "dataset": "gpw_day",
+  "blur_px": 20.0,
+  "dim": 4096,
+  "image_size": null,
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.285,
+    "R@5": 0.925,
+    "R@10": 0.99
+  },
+  "AP": 0.10072978807624185,
+  "max_recall_at_100_precision": 0.005,
+  "sec_per_image_model_only": 0.19406068205833435,
+  "device": "cpu"
+}

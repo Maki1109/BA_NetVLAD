@@ -1,0 +1,22 @@
+{
+  "method": "salad",
+  "dataset": "gpw_day",
+  "blur_px": 30.0,
+  "dim": 8448,
+  "image_size": [
+    322,
+    322
+  ],
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.275,
+    "R@5": 0.925,
+    "R@10": 0.995
+  },
+  "AP": 0.07617507928969798,
+  "max_recall_at_100_precision": 0.0,
+  "sec_per_image_model_only": 0.5701222884654998,
+  "device": "cpu"
+}

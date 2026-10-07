@@ -1,0 +1,22 @@
+{
+  "method": "ba_netvlad_ba_kitti00",
+  "dataset": "gpw_day",
+  "blur_px": 30.0,
+  "dim": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.1,
+    "R@5": 0.345,
+    "R@10": 0.485
+  },
+  "AP": 0.015003994392384779,
+  "max_recall_at_100_precision": 0.0,
+  "sec_per_image_model_only": 0.003514930009841919,
+  "device": "cpu"
+}

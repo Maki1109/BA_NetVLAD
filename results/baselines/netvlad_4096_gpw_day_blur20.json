@@ -1,0 +1,22 @@
+{
+  "method": "netvlad_4096",
+  "dataset": "gpw_day",
+  "blur_px": 20.0,
+  "dim": 4096,
+  "image_size": [
+    320,
+    320
+  ],
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.335,
+    "R@5": 0.89,
+    "R@10": 0.985
+  },
+  "AP": 0.12698302442786064,
+  "max_recall_at_100_precision": 0.0,
+  "sec_per_image_model_only": 1.1798147463798523,
+  "device": "cpu"
+}

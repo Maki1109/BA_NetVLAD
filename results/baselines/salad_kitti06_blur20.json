@@ -1,0 +1,22 @@
+{
+  "method": "salad",
+  "dataset": "kitti06",
+  "blur_px": 20.0,
+  "dim": 8448,
+  "image_size": [
+    322,
+    322
+  ],
+  "n_ref": 695,
+  "n_query": 1101,
+  "n_loopable_queries": 253,
+  "recall": {
+    "R@1": 0.9604743083003953,
+    "R@5": 0.9802371541501976,
+    "R@10": 0.9881422924901185
+  },
+  "AP": 0.9431589646321885,
+  "max_recall_at_100_precision": 0.23715415019762845,
+  "sec_per_image_model_only": 0.9388058547211386,
+  "device": "cpu"
+}

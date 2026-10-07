@@ -50,4 +50,18 @@ check(f'temporal voting (accepts at vote 3+: {oks})', oks == [False, False, True
 # 5) recall@n perfect on toy scores
 S = np.eye(10, dtype=np.float32); S[S == 0] = 0.1
 check('recall@1 == 1.0 on toy data', recall_at_n(S, np.eye(10).astype(bool))['R@1'] == 1.0)
+# 6) ORB verification: inliers for the right place collapse under blur
+from ba_netvlad.orb import ORBVerifier
+rng = np.random.RandomState(1)
+tex = cv2.resize((rng.rand(48, 64, 3) * 255).astype(np.uint8), (640, 480), interpolation=cv2.INTER_CUBIC)
+for _ in range(60):
+    cv2.rectangle(tex, tuple(rng.randint(0, 600, 2)), tuple(rng.randint(0, 440, 2) + 30),
+                  tuple(int(c) for c in rng.randint(0, 255, 3)), -1)
+Mw = cv2.getRotationMatrix2D((320, 240), 3, 1.02); Mw[:, 2] += [8, 5]
+view = cv2.warpAffine(tex, Mw, (640, 480))
+orbv = ORBVerifier()
+ref = orbv.extract(tex)
+n_sharp = orbv.inliers(orbv.extract(view), ref)
+n_blur = orbv.inliers(orbv.extract(motion_blur(view, 30, 0)), ref)
+check(f'ORB inliers sharp={n_sharp} >> blur30={n_blur}', n_sharp >= 50 and n_blur < 15)
 print('\nALL SMOKE TESTS PASSED')

@@ -25,3 +25,8 @@ Thumbs.db
 *.out
 *.toc
 *.synctex.gz
+
+# Cached descriptors of the baseline evaluation (about 1 GB)
+results/baselines/desc_cache/
+results/final/
+results/par_done.flag

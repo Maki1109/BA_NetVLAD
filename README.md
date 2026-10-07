@@ -14,9 +14,9 @@ depend on. This breaks the local-feature matching that most loop-closure detecti
 1. **Blur gate** — every frame is scored by variance-of-Laplacian sharpness
    $\beta(I) = \mathrm{Var}(\nabla^2 I)$ on a fixed-resolution grayscale crop, with
    hysteresis between `epsilon` and `epsilon_high` to avoid branch-flapping.
-2. **Sharp branch** — ORB local features for real-time tracking, NetVLAD global
-   descriptor at keyframe intervals.
-3. **Blurry branch** — skip ORB entirely; run *every* frame through a
+2. **Sharp branch** — NetVLAD retrieves top-k candidates; each is verified by ORB
+   feature matching + RANSAC (geometric verification).
+3. **Blurry branch** — skip ORB entirely; query *every* frame through a
    MobileNetV3-Small + NetVLAD backbone to get a compact global descriptor. NetVLAD
    aggregates large-scale spatial structure (walls, buildings) rather than corners,
    so it stays discriminative even when local texture is destroyed.
@@ -36,6 +36,7 @@ ba_netvlad/            core library
   dictionary.py           Super Dictionary build/load, PCA+whitening
   matcher.py              Step 4: cosine top-k, temporal voting, confirm_loop
   evaluate.py             Recall@N, precision-recall curve
+  orb.py                  ORB + RANSAC geometric verification of loop candidates
   replay.py               full BA-NetVLAD control-flow replay over a sequence
 
 scripts/
@@ -127,6 +128,22 @@ python scripts/04_replay_evaluate.py --model ckpt/ba_kitti00.pt \
     --dict dict/kitti00_dict.npz --query_root data/kitti00_blur20 \
     --epsilon <ε> --loop_index_gap 400 --cell 4.0 --out results/kitti00_blur20.json
 ```
+
+### ORB verification modes
+
+`scripts/04_replay_evaluate.py --mode` chooses how a NetVLAD candidate is verified
+(same query schedule in every mode: blurry frames every frame, sharp frames every
+`keyframe_interval`):
+
+| mode | sharp frame | blurry frame |
+|---|---|---|
+| `ba` (default) | top-k candidates verified with ORB + RANSAC (`--orb_min_inliers`, `--orb_topk`) | ORB skipped, NetVLAD score + voting |
+| `netvlad` | NetVLAD only (ablation, the behaviour of the earlier results) | NetVLAD only |
+| `orb` | ORB verification | ORB verification (baseline; collapses under blur) |
+
+The result JSON includes `orb_stats` (per queried frame: `beta`, keypoints, best and
+correct-candidate inliers) for calibrating `epsilon` against where ORB breaks.
+`--orb_min_inliers` (default 15) must be tuned on a validation sequence.
 
 ### Standard VPR benchmarks (Gardens Point Walking, City Centre)
 

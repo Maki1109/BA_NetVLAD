@@ -1,0 +1,19 @@
+{
+  "method": "mixvpr_128",
+  "dataset": "kitti06",
+  "blur_px": 0.0,
+  "dim": 128,
+  "image_size": null,
+  "n_ref": 695,
+  "n_query": 1101,
+  "n_loopable_queries": 253,
+  "recall": {
+    "R@1": 0.9683794466403162,
+    "R@5": 0.9802371541501976,
+    "R@10": 0.9841897233201581
+  },
+  "AP": 0.9622558856221108,
+  "max_recall_at_100_precision": 0.9446640316205533,
+  "sec_per_image_model_only": 0.1400132989147162,
+  "device": "cpu"
+}

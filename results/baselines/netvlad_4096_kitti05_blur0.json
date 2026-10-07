@@ -1,0 +1,22 @@
+{
+  "method": "netvlad_4096",
+  "dataset": "kitti05",
+  "blur_px": 0.0,
+  "dim": 4096,
+  "image_size": [
+    320,
+    320
+  ],
+  "n_ref": 1791,
+  "n_query": 2761,
+  "n_loopable_queries": 719,
+  "recall": {
+    "R@1": 0.9165507649513213,
+    "R@5": 0.9429763560500696,
+    "R@10": 0.9596662030598053
+  },
+  "AP": 0.9020775546277848,
+  "max_recall_at_100_precision": 0.8400556328233658,
+  "sec_per_image_model_only": 0.22227030264990177,
+  "device": "cpu"
+}

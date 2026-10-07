@@ -1,0 +1,19 @@
+{
+  "method": "mixvpr_128",
+  "dataset": "gpw_night",
+  "blur_px": 0.0,
+  "dim": 128,
+  "image_size": null,
+  "n_ref": 200,
+  "n_query": 200,
+  "n_loopable_queries": 200,
+  "recall": {
+    "R@1": 0.195,
+    "R@5": 0.585,
+    "R@10": 0.77
+  },
+  "AP": 0.050529165575748956,
+  "max_recall_at_100_precision": 0.0,
+  "sec_per_image_model_only": 0.11703136086463928,
+  "device": "cpu"
+}
